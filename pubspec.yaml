@@ -1,6 +1,6 @@
 name: otel_kafka
 description: OpenTelemetry bridge for Apache Kafka (produce, consume).
-version: 0.1.0-beta.4
+version: 0.1.0-beta.5-wip
 repository: https://github.com/dartastic/otel_kafka
 homepage: https://dartastic.io
 publish_to: https://pub.dartastic.io
