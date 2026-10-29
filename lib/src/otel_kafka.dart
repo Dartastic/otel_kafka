@@ -1,21 +1,24 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_kafka_suppression.dart';
 
 const _tracerName = 'dartastic_otel_libs_kafka';
 
-Tracer _tracer() => OTel.tracerProvider().getTracer(_tracerName);
+APITracer _tracer() => OTelAPI.tracerProvider().getTracer(_tracerName);
 
 /// Pair returned from `tracedKafkaProduce` callback.
 class KafkaProduceResult<T> {
+  /// Creates a result.
   const KafkaProduceResult({
     required this.value,
     this.partition,
     this.offset,
   });
+
+  /// The value returned to the caller.
   final T value;
   final int? partition;
   final int? offset;
@@ -46,29 +49,29 @@ Future<T> tracedKafkaProduce<T>({
   final span = _tracer().startSpan(
     'publish $topic',
     kind: SpanKind.producer,
-    attributes: OTel.attributesFromMap(m),
+    attributes: OTelAPI.attributesFromMap(m),
   );
   try {
     final r = await invoke();
     final extras = <Attribute<Object>>[];
     if (r.partition != null) {
-      extras.add(OTel.attributeInt(
+      extras.add(OTelAPI.attributeInt(
         'messaging.kafka.destination.partition',
         r.partition!,
       ));
     }
     if (r.offset != null) {
-      extras.add(OTel.attributeInt(
+      extras.add(OTelAPI.attributeInt(
         'messaging.kafka.message.offset',
         r.offset!,
       ));
     }
-    if (extras.isNotEmpty) span.addAttributes(OTel.attributes(extras));
+    if (extras.isNotEmpty) span.addAttributes(OTelAPI.attributes(extras));
     return r.value;
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
-        ErrorResource.errorType.key,
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
@@ -107,14 +110,14 @@ Future<T> tracedKafkaConsume<T>({
   final span = _tracer().startSpan(
     'receive $topic',
     kind: SpanKind.consumer,
-    attributes: OTel.attributesFromMap(m),
+    attributes: OTelAPI.attributesFromMap(m),
   );
   try {
     return await invoke();
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
-        ErrorResource.errorType.key,
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
